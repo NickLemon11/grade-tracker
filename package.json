@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://NickLemon11.github.io/pointA",
+  "homepage": "https://NickLemon11.github.io/grade-tracker",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -4,7 +4,7 @@ import {
   ArrowLeft, ChevronDown, ChevronUp, Download, Upload 
 } from 'lucide-react';
 
-// --- INITIAL MOCK / DEFAULT DATA ---
+// --- INITIAL MOCK / DEFAULT DATA --
 const INITIAL_CLASSES = [
   {
     id: 'class-1',
