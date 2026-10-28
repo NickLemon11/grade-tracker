@@ -8,8 +8,8 @@ import {
 const INITIAL_CLASSES = [
   {
     id: 'class-1',
-    code: 'MAT1320',
-    name: 'Calculus I',
+    code: 'EG-101',
+    name: 'EXAMPLE',
     color: 'bg-[#FAF0D4] text-[#4A3226] border-[#D4BD99]',
     gradeComponents: [
       {
