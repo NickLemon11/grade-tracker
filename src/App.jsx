@@ -840,7 +840,7 @@ function ClassDetailView({ classItem, highlightedComponentId, onBackToChalkboard
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {classItem.gradeComponents.map(gt => {
               const computedScore = calculateGradeComponentScore(gt);
               const completedTasksCount = gt.checklist.filter(c => c.completed).length;
