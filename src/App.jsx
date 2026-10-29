@@ -239,7 +239,9 @@ export default function App() {
                 className: cls.name,
                 classId: cls.id,
                 componentId: gt.id,
-                classColor: cls.color
+                subId: sub.id,
+                classColor: cls.color,
+                isCompleted: !!sub.isCompleted
               });
             }
           });
@@ -252,12 +254,36 @@ export default function App() {
             className: cls.name,
             classId: cls.id,
             componentId: gt.id,
-            classColor: cls.color
+            subId: null,
+            classColor: cls.color,
+            isCompleted: !!gt.isCompleted
           });
         }
       });
     });
     return tasks;
+  };
+
+  const handleToggleTaskCompleted = (classId, componentId, subId, e) => {
+    e.stopPropagation();
+    setClasses(classes.map(cls => {
+      if (cls.id !== classId) return cls;
+      const updatedComponents = cls.gradeComponents.map(gt => {
+        if (gt.id !== componentId) return gt;
+        if (subId) {
+          const updatedSubs = gt.subDivisions.map(sub => {
+            if (sub.id === subId) {
+              return { ...sub, isCompleted: !sub.isCompleted };
+            }
+            return sub;
+          });
+          return { ...gt, subDivisions: updatedSubs };
+        } else {
+          return { ...gt, isCompleted: !gt.isCompleted };
+        }
+      });
+      return { ...cls, gradeComponents: updatedComponents };
+    }));
   };
 
   const handleAddClass = (e) => {
@@ -315,6 +341,7 @@ export default function App() {
             onChangeColor={handleChangeClassColor}
             upcomingTasks={getUpcomingTasks()}
             onSelectTask={handleSelectTaskFromNoticeBoard}
+            onToggleTaskCompleted={handleToggleTaskCompleted}
             calculateOverallClassGrade={calculateOverallClassGrade}
             calculateAchievedScoreSoFar={calculateAchievedScoreSoFar}
             getUottawaStanding={getUottawaStanding}
@@ -411,7 +438,7 @@ export default function App() {
 }
 
 // --- HOME CHALKBOARD VIEW ---
-function HomeChalkboard({ classes, onSelectClass, onOpenAddClass, onDeleteClass, onChangeColor, upcomingTasks, onSelectTask, calculateOverallClassGrade, calculateAchievedScoreSoFar, getUottawaStanding, onExport, onImport }) {
+function HomeChalkboard({ classes, onSelectClass, onOpenAddClass, onDeleteClass, onChangeColor, upcomingTasks, onSelectTask, onToggleTaskCompleted, calculateOverallClassGrade, calculateAchievedScoreSoFar, getUottawaStanding, onExport, onImport }) {
   const fileInputRef = useRef(null);
 
   return (
@@ -516,22 +543,33 @@ function HomeChalkboard({ classes, onSelectClass, onOpenAddClass, onDeleteClass,
                 <div 
                   key={idx}
                   onClick={() => onSelectTask(task.classId, task.componentId)}
-                  className={`${task.classColor} border-2 p-3 rounded-xl transition cursor-pointer group shadow-sm`}
+                  className={`${task.classColor} border-2 p-3 rounded-xl transition cursor-pointer group shadow-sm flex items-start justify-between gap-2 ${task.isCompleted ? 'opacity-50 grayscale bg-stone-300 border-stone-400 text-stone-700' : ''}`}
                 >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-black/10 backdrop-blur opacity-80">
-                      {task.classCode}
-                    </span>
-                    <span className="text-[11px] opacity-80 flex items-center gap-1 font-medium">
-                      <Calendar size={12} /> {task.date}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur ${task.isCompleted ? 'bg-stone-400/30 text-stone-700' : 'bg-black/10 opacity-80'}`}>
+                        {task.classCode}
+                      </span>
+                      <span className="text-[11px] opacity-80 flex items-center gap-1 font-medium shrink-0">
+                        <Calendar size={12} /> {task.date}
+                      </span>
+                    </div>
+                    <h4 className={`text-xs font-bold transition mt-1 truncate ${task.isCompleted ? 'line-through' : ''}`}>
+                      {task.name}
+                    </h4>
+                    <div className="text-[11px] opacity-80 mt-1">
+                      Weight: <span className="font-semibold">{task.weight}%</span>
+                    </div>
                   </div>
-                  <h4 className="text-xs font-bold transition mt-1">
-                    {task.name}
-                  </h4>
-                  <div className="text-[11px] opacity-80 mt-1">
-                    Weight: <span className="font-semibold">{task.weight}%</span>
-                  </div>
+
+                  <button
+                    type="button"
+                    title={task.isCompleted ? "Unmark as completed" : "Grey out / complete task"}
+                    onClick={(e) => onToggleTaskCompleted(task.classId, task.componentId, task.subId, e)}
+                    className={`mt-1 p-1 rounded border transition shrink-0 cursor-pointer ${task.isCompleted ? 'bg-stone-500 text-white border-stone-600' : 'bg-black/10 hover:bg-black/20 border-black/20'}`}
+                  >
+                    <CheckSquare size={14} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -543,14 +581,14 @@ function HomeChalkboard({ classes, onSelectClass, onOpenAddClass, onDeleteClass,
             <div className="flex gap-2">
               <button
                 onClick={onExport}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#735B45] hover: text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#735B45] hover:bg-[#856A52] text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow"
                 title="Backup all class data to a JSON file"
               >
                 <Download size={13} /> Backup
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover: text-[#4A3226] border border-[#D4BD99] rounded-lg text-xs font-semibold transition cursor-pointer shadow"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-stone-100 text-[#4A3226] border border-[#D4BD99] rounded-lg text-xs font-semibold transition cursor-pointer shadow"
                 title="Restore class data from a JSON file"
               >
                 <Upload size={13} /> Restore
@@ -681,7 +719,8 @@ function ClassDetailView({ classItem, highlightedComponentId, onBackToChalkboard
               name: sub.name,
               weight: sub.weight,
               grade: sub.grade !== '' ? Number(sub.grade) : null,
-              date: sub.date || null
+              date: sub.date || null,
+              isCompleted: !!sub.isCompleted
             })) : []
           };
         }
@@ -696,13 +735,15 @@ function ClassDetailView({ classItem, highlightedComponentId, onBackToChalkboard
         weight: Number(gtWeight),
         date: hasSubDivisions ? null : (gtDate || null),
         isEqualWeighting: hasSubDivisions ? isEqualWeighting : false,
+        isCompleted: false,
         receivedGrade: hasSubDivisions ? null : (gtGrade !== '' ? Number(gtGrade) : null),
         subDivisions: hasSubDivisions ? subDivisions.map((sub, i) => ({
           id: 'sub-' + Date.now() + '-' + i,
           name: sub.name,
           weight: sub.weight,
           grade: sub.grade !== '' ? Number(sub.grade) : null,
-          date: sub.date || null
+          date: sub.date || null,
+          isCompleted: false
         })) : [],
         checklist: []
       };
@@ -786,7 +827,7 @@ function ClassDetailView({ classItem, highlightedComponentId, onBackToChalkboard
       <div className="flex items-center justify-between">
         <button 
           onClick={onBackToChalkboard}
-          className="flex items-center gap-2 px-4 py-2 bg-[#3E362C] hover: hover:cursor-pointer rounded-lg text-sm transition font-medium border-2 border-[#3E362C] text-white shadow"
+          className="flex items-center gap-2 px-4 py-2 bg-[#3E362C] hover:bg-[#261C1B] hover:cursor-pointer rounded-lg text-sm transition font-medium border-2 border-[#3E362C] text-white shadow"
         >
           <ArrowLeft size={16} /> View All Classes
         </button>
@@ -1144,7 +1185,7 @@ function ClassDetailView({ classItem, highlightedComponentId, onBackToChalkboard
                   type="submit"
                   className="px-4 py-2 bg-[#D6C6BC] hover:bg-[#E6D5CC] text-[#736257] rounded-lg text-sm font-medium transition shadow-lg cursor-pointer"
                 >
-                  Save Component
+                  Save Component / Sub-part
                 </button>
               </div>
             </form>
