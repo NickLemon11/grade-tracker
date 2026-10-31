@@ -68,10 +68,6 @@ const parseWeightValue = (val) => {
 };
 
 export default function App() {
-  useEffect(() => {
-    document.title = 'pointA';
-  }, []);
-
   const [classes, setClasses] = useState(() => {
     const saved = localStorage.getItem('chalkboard_classes');
     return saved ? JSON.parse(saved) : INITIAL_CLASSES;
